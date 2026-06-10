@@ -1,5 +1,5 @@
 // DP Atlas service worker — sürüm artınca CACHE adını değiştir, eski önbellek temizlenir.
-const CACHE = 'dp-atlas-v0-1';
+const CACHE = 'dp-atlas-v0-2';
 const ASSETS = [
   './',
   './index.html',
