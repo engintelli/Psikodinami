@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dinamik Psikiyatri · Atlas</title>
+<meta name="description" content="Psikodinamik psikiyatri çalışma atlası — kaynak ve yazar atıflı, sürekli akış.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#10363f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10161c" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DP Atlas">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --paper:#f5f7f8; --surface:#ffffff; --surface-2:#eef2f3;
+    --ink:#1b252c; --ink-soft:#4d5963; --ink-faint:#7c8893;
+    --line:#e1e6e9; --line-strong:#c9d2d6;
+    --structure:#10495a; --structure-soft:#2c768b; --structure-tint:#e6eef0;
+    --signature:#a6601f; --signature-bg:#f4e7d6; --signature-line:#e6cda6;
+    --maxw:42rem;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0f151a; --surface:#161e25; --surface-2:#1b242c;
+      --ink:#e7edf1; --ink-soft:#aab6c0; --ink-faint:#7d8a94;
+      --line:#27313a; --line-strong:#36424c;
+      --structure:#62aabd; --structure-soft:#4d96aa; --structure-tint:#13313a;
+      --signature:#d6a061; --signature-bg:#2a2014; --signature-line:#4a3a22;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--serif); font-size:1.0625rem; line-height:1.68;
+    -webkit-text-size-adjust:100%; text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* ---------- top bar ---------- */
+  .bar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:.75rem;
+    padding:.7rem 1.1rem; padding-top:max(.7rem,env(safe-area-inset-top));
+    background:color-mix(in srgb,var(--paper) 88%, transparent);
+    backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar__mark{font-family:var(--sans); font-weight:700; letter-spacing:.02em; font-size:.92rem; color:var(--structure)}
+  .bar__mark small{display:block; font-weight:500; letter-spacing:.16em; text-transform:uppercase; font-size:.6rem; color:var(--ink-faint)}
+  .bar__spacer{flex:1}
+  .toc-btn{
+    font-family:var(--sans); font-size:.8rem; font-weight:600; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:.55rem;
+    padding:.45rem .7rem; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem;
+  }
+  .toc-btn:focus-visible{outline:2px solid var(--structure); outline-offset:2px}
+
+  /* ---------- toc drawer ---------- */
+  .scrim{position:fixed; inset:0; background:rgba(10,16,20,.45); opacity:0; pointer-events:none; transition:opacity .2s; z-index:50}
+  .scrim.open{opacity:1; pointer-events:auto}
+  .toc{
+    position:fixed; z-index:60; top:0; right:0; height:100%; width:min(20rem,84vw);
+    background:var(--surface); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform .24s ease; overflow-y:auto;
+    padding:1rem 1rem max(1rem,env(safe-area-inset-bottom));
+  }
+  @media (prefers-reduced-motion: reduce){.toc{transition:none}}
+  .toc.open{transform:translateX(0)}
+  .toc h2{font-family:var(--sans); font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); margin:.4rem .2rem .6rem}
+  .toc a{display:flex; align-items:baseline; gap:.55rem; text-decoration:none; color:var(--ink); padding:.5rem .35rem; border-radius:.45rem; font-family:var(--sans); font-size:.9rem; line-height:1.35}
+  .toc a:hover,.toc a.active{background:var(--structure-tint); color:var(--structure)}
+  .toc a .num{font-variant-numeric:tabular-nums; font-size:.72rem; color:var(--ink-faint); min-width:1.6rem}
+  .toc a.sub{padding-left:2.3rem; font-size:.82rem; color:var(--ink-soft)}
+  .dot{width:.42rem; height:.42rem; border-radius:50%; margin-left:auto; flex:none; align-self:center}
+  .dot.done{background:var(--structure-soft)}
+  .dot.wip{background:var(--signature)}
+  .toc__close{position:absolute; top:.7rem; right:.7rem; background:none; border:none; color:var(--ink-soft); font-size:1.4rem; cursor:pointer; line-height:1}
+
+  /* ---------- layout ---------- */
+  main{max-width:var(--maxw); margin:0 auto; padding:0 1.15rem 5rem}
+  .lede{padding:2.2rem 0 1.4rem; border-bottom:1px solid var(--line)}
+  .lede h1{font-family:var(--sans); font-weight:800; font-size:clamp(1.7rem,7vw,2.3rem); line-height:1.08; letter-spacing:-.01em; margin:.3rem 0 .5rem}
+  .lede p{color:var(--ink-soft); margin:.4rem 0}
+  .eyebrow{font-family:var(--sans); font-weight:600; font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--structure-soft)}
+
+  /* legend */
+  .legend{background:var(--surface); border:1px solid var(--line); border-radius:.8rem; padding:1rem 1.05rem; margin:1.4rem 0 0}
+  .legend h3{font-family:var(--sans); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 .7rem}
+  .legend ul{list-style:none; margin:0; padding:0; display:grid; gap:.55rem}
+  .legend li{font-size:.92rem; color:var(--ink-soft); display:flex; gap:.6rem; align-items:baseline}
+
+  /* section */
+  section.part{padding:2.4rem 0 .6rem; scroll-margin-top:4.2rem}
+  .part__head{display:flex; align-items:flex-start; gap:.85rem; border-bottom:2px solid var(--structure); padding-bottom:.6rem; margin-bottom:1.1rem}
+  .part__num{font-family:var(--sans); font-weight:800; font-size:1.05rem; color:var(--structure); font-variant-numeric:tabular-nums; line-height:1.6}
+  .part__title{font-family:var(--sans); font-weight:800; font-size:1.32rem; letter-spacing:-.01em; margin:0; line-height:1.18}
+  .part__title small{display:block; font-weight:500; font-size:.82rem; color:var(--ink-faint); letter-spacing:0; margin-top:.15rem}
+
+  h3.topic{font-family:var(--sans); font-weight:700; font-size:1.08rem; margin:1.9rem 0 .2rem; color:var(--ink)}
+  h4.sub{font-family:var(--sans); font-weight:700; font-size:.95rem; margin:1.3rem 0 .15rem; color:var(--structure)}
+  p{margin:.55rem 0}
+  a.inline{color:var(--structure); text-decoration:underline; text-underline-offset:2px}
+
+  /* one-sentence summary */
+  .nutshell{display:flex; gap:.6rem; background:var(--structure-tint); border-radius:.65rem; padding:.7rem .85rem; margin:.5rem 0 .3rem; font-size:.97rem}
+  .nutshell b{font-family:var(--sans); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--structure-soft); flex:none; padding-top:.18rem}
+
+  /* attribution chips — the signature */
+  .au{font-family:var(--sans); font-weight:600; font-size:.74em; color:var(--signature);
+      background:var(--signature-bg); border:1px solid var(--signature-line);
+      border-radius:.4rem; padding:.04em .42em; white-space:nowrap; line-height:1.4}
+  .cite{font-family:var(--mono); font-size:.7em; color:var(--ink-faint);
+        background:var(--surface-2); border-radius:.35rem; padding:.05em .4em; white-space:nowrap}
+  .en{font-style:italic; color:var(--ink-soft)}
+  .term{font-weight:600}
+
+  /* exam corner */
+  .exam{border:1px solid var(--structure); border-radius:.8rem; overflow:hidden; margin:1.5rem 0}
+  .exam__h{font-family:var(--sans); font-weight:700; font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+           background:var(--structure); color:#fff; padding:.5rem .9rem; display:flex; align-items:center; gap:.5rem}
+  .exam__b{padding:.85rem .95rem; background:var(--surface)}
+  .exam__b p{margin:.35rem 0; font-size:.95rem}
+  .exam__b strong{font-family:var(--sans); font-size:.85rem}
+  .keyline{display:block; padding:.18rem 0; border-bottom:1px dashed var(--line)}
+  .keyline:last-child{border-bottom:none}
+
+  /* differential / comparison table */
+  .tw{overflow-x:auto; margin:1rem 0; border:1px solid var(--line); border-radius:.7rem}
+  table{border-collapse:collapse; width:100%; font-size:.9rem; min-width:30rem}
+  caption{caption-side:top; text-align:left; font-family:var(--sans); font-weight:700; font-size:.8rem; color:var(--ink-soft); padding:.6rem .8rem .3rem}
+  th,td{padding:.55rem .7rem; border-bottom:1px solid var(--line); vertical-align:top; text-align:left}
+  thead th{font-family:var(--sans); font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; color:var(--structure); background:var(--structure-tint); position:sticky; top:0}
+  tbody th{font-family:var(--sans); font-weight:700; font-size:.82rem; color:var(--ink)}
+  tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+
+  /* status / pending block */
+  .status{display:inline-flex; align-items:center; gap:.4rem; font-family:var(--sans); font-size:.7rem; font-weight:600;
+          letter-spacing:.04em; padding:.2rem .55rem; border-radius:999px}
+  .status.done{color:var(--structure-soft); background:var(--structure-tint)}
+  .status.wip{color:var(--signature); background:var(--signature-bg); border:1px solid var(--signature-line)}
+  .pending{background:var(--surface); border:1px dashed var(--line-strong); border-radius:.8rem; padding:1rem 1.05rem; margin:1rem 0; color:var(--ink-soft)}
+  .pending h4{font-family:var(--sans); margin:.1rem 0 .5rem; color:var(--ink); font-size:.98rem}
+  .pending ul{margin:.3rem 0 0; padding-left:1.1rem; font-size:.92rem}
+  .pending li{margin:.2rem 0}
+  .srcline{font-family:var(--sans); font-size:.78rem; color:var(--ink-faint); margin-top:.6rem}
+
+  ul.body,ol.body{margin:.6rem 0; padding-left:1.2rem}
+  ul.body li,ol.body li{margin:.35rem 0}
+
+  footer{max-width:var(--maxw); margin:0 auto; padding:2rem 1.15rem max(3rem,env(safe-area-inset-bottom)); border-top:1px solid var(--line); color:var(--ink-faint); font-size:.82rem; font-family:var(--sans)}
+  footer b{color:var(--ink-soft)}
+  footer a{color:var(--structure-soft)}
+  .backtop{display:inline-block; margin-top:1rem; font-family:var(--sans); font-size:.8rem; color:var(--structure); text-decoration:none}
+
+  /* ---------- stars / favorites ---------- */
+  .bar__mark{min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis}
+  .bar__stars{font-family:var(--sans); font-size:.82rem; font-weight:700; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:.55rem;
+    padding:.45rem .62rem; cursor:pointer; display:inline-flex; align-items:center; gap:.32rem; flex:none}
+  .bar__stars .s{color:var(--signature)}
+  .bar__stars:focus-visible{outline:2px solid var(--structure); outline-offset:2px}
+  .star{appearance:none; -webkit-appearance:none; background:none; border:none; cursor:pointer;
+    font-size:1.05rem; line-height:1; color:var(--ink-faint); padding:.06rem .26rem; margin-right:.18rem;
+    border-radius:.35rem; transition:transform .12s, color .12s}
+  .star:hover{color:var(--signature)}
+  .star[aria-pressed="true"]{color:var(--signature)}
+  .star:active{transform:scale(1.2)}
+  .star:focus-visible{outline:2px solid var(--structure); outline-offset:2px}
+  h3.topic{scroll-margin-top:4.8rem}
+  .starred-wrap{margin-bottom:1rem; padding-bottom:.8rem; border-bottom:1px solid var(--line)}
+  #starredList{list-style:none; margin:0; padding:0; display:grid; gap:.12rem}
+  #starredList a{display:flex; gap:.5rem; align-items:baseline; text-decoration:none; color:var(--ink);
+    font-family:var(--sans); font-size:.85rem; line-height:1.3; padding:.42rem .35rem; border-radius:.45rem}
+  #starredList a:hover{background:var(--signature-bg); color:var(--signature)}
+  #starredList a::before{content:"★"; color:var(--signature); font-size:.78rem; flex:none}
+  .starred-empty{font-family:var(--sans); font-size:.8rem; color:var(--ink-faint); padding:.2rem .35rem}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar__mark">Dinamik Psikiyatri<small>Çalışma Atlası</small></div>
+  <div class="bar__spacer"></div>
+  <button class="bar__stars" id="starsBtn" aria-haspopup="true" aria-controls="toc" title="Yıldızlananlar"><span class="s">★</span> <span id="starsCount">0</span></button>
+  <button class="toc-btn" id="tocBtn" aria-haspopup="true" aria-expanded="false" aria-controls="toc">☰ İçindekiler</button>
+</header>
+
+<div class="scrim" id="scrim"></div>
+<nav class="toc" id="toc" aria-label="Atlas akışı">
+  <button class="toc__close" id="tocClose" aria-label="Kapat">×</button>
+  <div class="starred-wrap">
+    <h2>★ Yıldızlananlar</h2>
+    <ul id="starredList"></ul>
+    <div class="starred-empty" id="starredEmpty">Henüz yok — bir başlığın yanındaki ☆'a dokun.</div>
+  </div>
+  <h2>Akış · 00 – 06</h2>
+  <a href="#temeller"><span class="num">00</span> Temeller<span class="dot wip"></span></a>
+  <a href="#okullar"><span class="num">01</span> Kuramsal okullar<span class="dot wip"></span></a>
+  <a href="#yapisal"><span class="num">02</span> Yapısal eksen & savunmalar<span class="dot wip"></span></a>
+  <a href="#tipler"><span class="num">03</span> Karakter tipleri<span class="dot wip"></span></a>
+  <a class="sub" href="#histerik">— Histerik kişilikler<span class="dot done"></span></a>
+  <a href="#bozukluklar"><span class="num">04</span> Bozukluklar (dinamik)<span class="dot wip"></span></a>
+  <a href="#formulasyon"><span class="num">05</span> Değerlendirme & formülasyon<span class="dot wip"></span></a>
+  <a href="#tedavi"><span class="num">06</span> Tedavi<span class="dot wip"></span></a>
+</nav>
+
+<main>
+
+  <section class="lede" id="top">
+    <div class="eyebrow">Psikodinamik psikiyatri · sürekli akış</div>
+    <h1>Dinamik Psikiyatri Atlası</h1>
+    <p>Tek bir akış olarak okunur (00 → 06). Her kavramın yanında <b>kimin tanımladığı</b> ve <b>hangi kaynağın hangi sayfası</b> görünür; çeviri farkları için orijinal terim <span class="en">italik İngilizce</span> verilir.</p>
+
+    <div class="legend">
+      <h3>Bu atlas nasıl okunur</h3>
+      <ul>
+        <li><span class="au">Yazar</span> Kavramı kimin ortaya koyduğu/tanımladığı — okullar ve yazarlar karışmasın diye.</li>
+        <li><span class="cite">McW s.367</span> Kaynak ve sayfa. Kodlar: <span class="cite">McW</span> McWilliams · <span class="cite">Gab</span> Gabbard · <span class="cite">Cab</span> Psychodynamic Formulation · <span class="cite">PDM</span> PDM-2 · <span class="cite">CK</span> Kaptanoğlu slaytları · <span class="cite">BPS</span> Eskişehir Biyopsikososyal Kılavuz.</li>
+        <li><span class="term">terim</span> <span class="en">(English term)</span> Türkçe terim + orijinali.</li>
+        <li><span class="status done">tam</span> kaynaktan yazıldı &nbsp; <span class="status wip">okunuyor</span> kaynak açılıp doldurulacak.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 00 TEMELLER ============ -->
+  <section class="part" id="temeller">
+    <div class="part__head">
+      <div class="part__num">00</div>
+      <h2 class="part__title">Temeller<small>Dinamik psikiyatri neyi, neden yapar</small></h2>
+    </div>
+
+    <h3 class="topic">Psikodinamik tanının mantığı — neden ayrı bir harita?</h3>
+    <div class="nutshell"><b>Tek cümlede</b><span>Betimleyici sınıflama kişinin <i>neyi olduğunu</i> (semptom) sorar; psikodinamik bakış <i>kim olduğunu</i> (kişilik, işlevsellik, öznel deneyim) sorar.</span></div>
+    <p>PDM-2'nin çıkış noktası şudur: ruh sağlığı, semptomun yokluğundan ibaret değildir; tıpkı kalp sağlığının "göğüs ağrısının olmaması" demek olmaması gibi <span class="cite">PDM Giriş s.4</span>. DSM/ICD güvenilirlik ve araştırma kolaylığı uğruna görüngüyü betimleyici, semptom-merkezli, "yeni Kraepelinci" bir çerçeveye indirger <span class="cite">PDM Giriş s.1</span>; bu da kişilik işlevselliğini, ilişki ve duygulanım kapasitelerini ve semptomun öznel yaşantısını arka plana atar <span class="cite">PDM Giriş s.4-6</span>.</p>
+    <p>PDM-2 bunu üç eksende tamamlar: <span class="term">P/K ekseni</span> kişilik sendromları (örgütlenme düzeyi × stil), <span class="term">M/Z ekseni</span> zihinsel işlevsellik (12 kapasite), <span class="term">S ekseni</span> semptom örüntülerinin öznel deneyimi <span class="cite">PDM İçindekiler</span>. <span class="au">McWilliams & Lingiardi</span> kişilik modellerini açıkça <i>harita</i> olarak tanımlar: amaç bozuklukları sıralamak değil, klinisyenin hastayı tanıması ve tedavide yön bulmasıdır <span class="cite">PDM s.13-14</span>.</p>
+
+    <h3 class="topic">"Dinamik" ne demek — çatışma, savunma, bilinçdışı</h3>
+    <p>Dinamik bakışın ortak paydası: davranış ve semptom, çoğu kez bilinç dışı bir <span class="term">çatışmanın</span> <span class="en">(conflict)</span> uzlaşı ürünüdür; <span class="term">savunmalar</span> <span class="en">(defenses)</span> bu çatışmayı yönetir; geçmiş ilişkiler bugünkü ilişkilerde yinelenir. Bu çatı, ileride her karakter tipinde ve formülasyonda tekrar tekrar kullanılacak.</p>
+
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler (kaynak açıldıkça)</h4>
+      <ul>
+        <li>Dinamik psikiyatrinin temel ilkeleri ve kuramsal temeli — <span class="cite">Gab Böl. 1–2</span></li>
+        <li>Ruhsal bozukluk modelleri (biyolojik / psikolojik / sosyal) — <span class="cite">CK · Ruhsal Bozukluk Modelleri</span></li>
+        <li>Psikoterapilere giriş — <span class="cite">CK · Psikoterapilere Giriş I–II</span></li>
+        <li>Psikanalizin kuruluşu: bilinçdışı, topografik & yapısal model — <span class="cite">CK · Psikanalizin Kuruluşu I–II</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 01 OKULLAR ============ -->
+  <section class="part" id="okullar">
+    <div class="part__head">
+      <div class="part__num">01</div>
+      <h2 class="part__title">Kuramsal okullar<small>Aynı kişiye dört farklı mercek</small></h2>
+    </div>
+    <p><span class="au">McWilliams</span> karakteri dört psikanalitik gelenekten okur ve bunları açıkça ayırır: klasik <span class="term">dürtü kuramı</span>, <span class="term">ego psikolojisi</span>, <span class="term">nesne ilişkileri</span>, <span class="term">kendilik psikolojisi</span> <span class="cite">McW İçindekiler · Böl. 2</span>. Atlasta her tip bu mercekler üzerinden ele alınacağı için okulları önce burada netleştiriyoruz.</p>
+
+    <h3 class="topic">Klasik dürtü kuramı & fiksasyon</h3>
+    <div class="nutshell"><b>Tek cümlede</b><span><span class="au">Freud</span>'a göre dürtü, biyolojik olanın zihinsel temsile kavuşmasıdır; bu temsile <i>saplanma</i> (fiksasyon) ileriki ruhsal örgütlenmeyi belirler.</span></div>
+    <p>Dürtü ancak zihinde temsil edildiğinde "vardır"; pre-ödipal/ödipal yaşantılar bilinçdışına silinmez biçimde kazınır ve dürtü temsilcisine <span class="term">saplanır</span> <span class="en">(fixation)</span> <span class="cite">CK · Dürtü Üzerine</span>. <span class="au">Freud</span> fiksasyonu dört düzlemde tanımlar: bellekte (anı izleri), belirtide (bastırılmış uzlaşı ürünü), <i>dönemde</i> (oral, anal vb.) ve <i>nesne türünde</i> (meme, dışkı, bakış, ses, koku, temas) <span class="cite">CK · Dürtü Üzerine</span>. Tekrarlama eğilimi — <span class="au">Freud</span>'un "Haz İlkesinin Ötesinde"ndeki <span class="term">tekrar kompülsiyonu</span> <span class="en">(repetition compulsion)</span> — bu saplanmanın klinikteki imzasıdır <span class="cite">CK · Dürtü Üzerine</span>.</p>
+    <p>Bu deste aynı zamanda <span class="au">Lacan</span>'cı bir okuma içerir (Gerçek/Simgesel; yapı–savunma eşleşmesi). Bu bağ, ileride "Yapısal eksen"deki Lacancı yapılarla doğrudan birleşecek. <span class="srcline">Not: Bu kaynak Kaptanoğlu'nun eğitim materyalidir; atlasta kendi cümlelerimle özetlenip atıf verilir, birebir aktarılmaz.</span></p>
+
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler</h4>
+      <ul>
+        <li><span class="au">Hartmann / A. Freud</span> Ego psikolojisi — uyum, çatışmasız alan, savunmalar — <span class="cite">CK · Ego Psikolojisi</span> + <span class="cite">McW Böl. 2</span></li>
+        <li><span class="au">Klein / Fairbairn / Winnicott</span> Nesne ilişkileri — içselleştirilmiş nesne, bölme, paranoid-şizoid ↔ depresif konum — <span class="cite">CK · Nesne İlişkileri</span> + <span class="cite">McW Böl. 2</span></li>
+        <li><span class="au">Kohut</span> Kendilik psikolojisi — kendilik-nesnesi, ayna/idealize aktarım — <span class="cite">McW Böl. 2</span></li>
+        <li><span class="au">Bowlby / Main</span> Bağlanma — <span class="cite">Cab Böl. 24</span></li>
+        <li><span class="au">İlişkisel / öznelerarası</span> okul — <span class="cite">McW Böl. 2</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 02 YAPISAL ============ -->
+  <section class="part" id="yapisal">
+    <div class="part__head">
+      <div class="part__num">02</div>
+      <h2 class="part__title">Yapısal eksen & savunmalar<small>Düzey + stil; ham ↔ olgun savunmalar</small></h2>
+    </div>
+
+    <h3 class="topic">Kişilik örgütlenmesi düzeyleri</h3>
+    <div class="nutshell"><b>Tek cümlede</b><span>Önce <i>düzey</i> (ne kadar ağır?) sorulur — nevrotik / sınırdurum / psikotik —, sonra <i>stil</i> (hangi karakter?) sorulur.</span></div>
+    <p><span class="au">Kernberg</span> kişilik örgütlenmesini üç düzeye ayırır: <span class="term">NPO</span> nevrotik <span class="en">(neurotic personality organization)</span>, <span class="term">BPO</span> sınırdurum <span class="en">(borderline)</span> — "yüksek" ve "düşük" alt-bantlarıyla — ve <span class="term">PPO</span> psikotik <span class="en">(psychotic)</span> <span class="cite">BPS Kılavuz · Kernberg şeması</span>. Ayırt edici üç ölçüt klinikte şöyle özetlenir: <b>kimlik bütünlüğü</b>, <b>savunma düzeyi</b> (olgun ↔ ilkel/bölme) ve <b>gerçeği değerlendirme</b> <span class="cite">BPS Kılavuz</span>. <span class="au">PDM-2</span> de aynı mantığı kullanır: P/K ekseni "düzey × stil" olarak kurulur <span class="cite">PDM s.14-15</span>.</p>
+    <p>Yapısal değerlendirme, kişiliğin görece sabit işlevlerini bir arada görür: gerçeklikle ilişki, nesne ilişkileri, duygulanım, dürtü kontrolü ve savunmalar, düşünce süreci, özerk ve sentetik işlevler, vicdan ve idealler <span class="cite">BPS Kılavuz</span>. <span class="au">Lacan</span>'cı çerçevede yapı–savunma eşleşmesi de buraya oturur: nevroz–bastırma <span class="en">(repression)</span>, sapkınlık–tanımama <span class="en">(disavowal)</span>, psikoz–hesaptan düşme <span class="en">(foreclosure)</span> <span class="cite">BPS Kılavuz</span>.</p>
+
+    <div class="exam">
+      <div class="exam__h">🎯 Sınav köşesi · düzeyler</div>
+      <div class="exam__b">
+        <p class="keyline"><strong>Ayırt et:</strong> <i>Düzey</i> ≠ <i>stil</i>. Aynı stil (örn. obsesif) nevrotik, borderline veya psikotik düzeyde olabilir.</p>
+        <p class="keyline"><strong>Sık karıştırılan:</strong> "Borderline" sözcüğü iki anlamda kullanılır — (1) Kernberg'in <i>örgütlenme düzeyi</i> (geniş), (2) DSM borderline kişilik bozukluğu (dar tanı). Atlasta hangisi kastediliyorsa belirtilecek.</p>
+        <p class="keyline"><strong>Akılda tut:</strong> Sıralama her zaman <b>düzey → stil</b>. Önce ağırlık, sonra renk.</p>
+      </div>
+    </div>
+
+    <h3 class="topic">Psikodinamik görüşme & değerlendirme</h3>
+    <p><span class="au">McWilliams</span>'ın önerdiği tanısal görüşme formatı atlasta formülasyon bölümünün omurgasıdır: demografik veriler, güncel sorunlar, kişisel tarihçe (bebeklik–gizillik–ergenlik–yetişkinlik), ruhsal durum ve <span class="term">dinamik çıkarımlar</span> (yineleyen temalar, saplanma/çatışma noktaları, tercih edilen savunmalar, yası tutulmamış kayıplar, kendilik-uyumu) <span class="cite">McW Ek · s.421-422</span>.</p>
+
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler</h4>
+      <ul>
+        <li><span class="au">McWilliams</span> Birincil (ilkel) savunmalar — geri çekilme, inkâr, tümgüçlü kontrol, ilkel idealizasyon/değersizleştirme, yansıtma/içe-atma/yansıtmalı özdeşim, bölme, dissosiyasyon — <span class="cite">McW Böl. 5</span></li>
+        <li><span class="au">McWilliams</span> İkincil (üst düzey) savunmalar — bastırma, gerileme, yalıtma, düşünselleştirme, yapıp-bozma, yer değiştirme, karşıt-tepki, yüceltme… — <span class="cite">McW Böl. 6</span></li>
+        <li>Nevrotik / sınırdurum / psikotik düzeyin klinik anlamları (teknik seçimi) — <span class="cite">McW Böl. 3–4</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 03 KARAKTER TİPLERİ ============ -->
+  <section class="part" id="tipler">
+    <div class="part__head">
+      <div class="part__num">03</div>
+      <h2 class="part__title">Karakter tipleri<small>Atlasın kalbi · her tip aynı iç şablonla</small></h2>
+    </div>
+    <p>Her tip <span class="au">McWilliams</span>'ın iç şablonuyla işlenir — <b>dürtü/duygulanım/mizaç → savunmalar → nesne ilişkileri → kendilik → aktarım/karşı-aktarım → terapi anlamları → ayırıcı tanı</b> — ve üstüne <span class="au">Gabbard</span> kliniği ile (varsa) <span class="au">PDM-2</span> karşılığı eklenir. Aşağıdaki <b>Histerik</b> kartı, tüm tipler için model alınacak tam örnektir.</p>
+
+    <!-- ---- HİSTERİK (full) ---- -->
+    <article id="histerik">
+      <h3 class="topic">Histerik kişilikler <span class="status done">tam</span></h3>
+      <div class="nutshell"><b>Tek cümlede</b><span>Korkutucu ve güçlü "ötekiler"le dolu bir dünyada güvenliği ve değeri cinselleştirilmiş güç üzerinden arayan; sıcak, yoğun, yüksek-kaygılı bir karakter örgütlenmesi.</span></div>
+
+      <h4 class="sub">Önce: kim "histerik" derken neyi kastediyor?</h4>
+      <p>Bu, terimin en çok karıştığı yer; o yüzden tanımları yan yana koyuyoruz:</p>
+      <div class="tw">
+        <table>
+          <caption>"Histeri / histerik / histriyonik" — kim, neyi kastediyor</caption>
+          <thead><tr><th>Kim</th><th>Neyi kastediyor</th></tr></thead>
+          <tbody>
+            <tr><th><span class="au">Klasik Freud</span></th><td>Histeri = ödipal/genital çatışma + <span class="term">konversiyon</span> semptomları (felç, körlük, "eldiven felci"); temel savunma <span class="term">bastırma</span>. Bilinçdışının kapısını açan tablo. <span class="cite">Gab s.546-547</span> <span class="cite">McW s.365</span></td></tr>
+            <tr><th><span class="au">McWilliams</span></th><td>Konuyu semptomdan ayırır: histerik <i>karakter örgütlenmesi</i> (genelde nevrotik/olgun düzey). Konversiyon "hastalığı" değil, ona eşlik edebilen bir <b>kişilik yapısı</b>. <span class="cite">McW s.365-366</span></td></tr>
+            <tr><th><span class="au">Gabbard</span></th><td>İkiye böler: <b>histerik</b> (üst düzey, nevrotik, fallik-ödipal saplanma) ↔ <b>histriyonik</b> (daha ilkel, borderline düzey, oral saplanma). DSM-5 histriyonik ölçütleri klasik "histerik"i değil, narsisistik/borderline tabloyu yakalar. <span class="cite">Gab s.545-550</span></td></tr>
+            <tr><th><span class="au">Kernberg</span></th><td>"İnfantil/çocuksu kişilik" = borderline örgütlenme; üst düzey için "histerik", alt düzey için "histeroid". <span class="cite">Gab s.551</span> <span class="cite">McW s.366</span></td></tr>
+            <tr><th><span class="au">DSM-5</span></th><td>Histriyonik KB = davranışsal ölçütler (ilgi merkezi olma, hızlı/yüzeysel duygu, baştan çıkarıcılık, izlenimci konuşma, telkine yatkınlık…). Kuramsal değil, betimleyici. <span class="cite">Gab Kutu 18-1, s.546</span></td></tr>
+            <tr><th><span class="au">PDM-2</span></th><td>P/K ekseninde "histerik-histriyonik" sendromu, düzey × stil olarak. <span class="status wip">okunuyor</span> — <i>yüklenen PDM dosyası kısmî (39 sf.), tam metin gelince doldurulacak; uydurma yapılmıyor.</i></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="sub">Dürtü · duygulanım · mizaç</h4>
+      <p>Mizaç gereği yoğun, aşırı-duyarlı, <span class="term">sosyofilik</span> (insana yönelik); sıcak, enerjik, sezgisel; heyecan ve riske çekilirler, kriz peşinde koşabilirler <span class="cite">McW s.366-367</span>. Duygular hızla değişir — "histerik duygulanım oynaklığı" <span class="cite">McW s.367</span>. <span class="au">Shapiro</span>'nun tarif ettiği bilişsel tarz <span class="term">izlenimci, bütünsel, imgesel</span> <span class="en">(global, impressionistic)</span> — ayrıntıya değil, "hisse/sezgiye" göre yanıt verirler ("Babam mı? Süper biri!") <span class="cite">Gab s.552-553</span> <span class="cite">McW s.367</span>. <span class="au">Freud</span> güçlü bir oral iştahı (sevgi, ilgi, yakınlık ihtiyacı) temel bir nitelik olarak görür <span class="cite">McW s.367</span>.</p>
+
+      <h4 class="sub">Savunmalar</h4>
+      <p>Çekirdek: <span class="term">bastırma</span> <span class="en">(repression)</span>, <span class="term">cinselleştirme</span> <span class="en">(sexualization)</span>, <span class="term">gerileme</span> <span class="en">(regression)</span> <span class="cite">McW s.369-372</span>. <span class="au">Freud</span> bastırmayı histeride en temel süreç sayar; ancak normal dürtüye karşı kullanıldığında zayıf/güvenilmez bir savunmadır ve "<span class="term">bastırılanın geri dönüşü</span>" olarak sızar — kişi farkında olmadan baştan çıkarıcı davranabilir, sonra şaşırır <span class="cite">McW s.370-371</span>. <span class="term">Eyleme-koyma</span> <span class="en">(acting out)</span> sıklıkla <b>karşı-fobiktir</b>: bilinçdışı olarak korkulan şeye doğru gidilir (seksten korkarken baştan çıkarma; otoriteden korkarken kışkırtma) <span class="cite">McW s.371-372</span>. Yüksek uyarılmayı azaltmak için ikincil olarak <span class="term">dissosiyatif</span> mekanizmalar (la belle indifférence, füg, pseudologia fantastica) devreye girer <span class="cite">McW s.372-373</span>. <span class="au">Gabbard</span> ek olarak duygusallığın <i>kendisinin</i> bir savunma olabileceğini vurgular: yüzeysel-abartılı duygu, daha derin duyguyu örter <span class="cite">Gab s.554</span>.</p>
+
+      <h4 class="sub">Nesne ilişkileri</h4>
+      <p>Tipik zemin: cinsiyetlere farklı güç/değer atfedilen bir aile; kız çocuğun erkek kardeşe ayrıcalık tanındığını ya da "erkek doğması beklendiğini" hissetmesi <span class="cite">McW s.373-374</span>. <span class="au">Mueller & Aniskiewitz</span> etiyolojide <b>anne yetersizliği + baba narsisizmi</b> birleşimini öne çıkarır <span class="cite">McW s.374</span>. <span class="au">Gabbard</span> gelişimsel ayrımı keskinleştirir: <b>histriyonik</b> daha çok <i>oral</i> evrede (anneden mahrumiyet → babaya yönelme, "meme-penis denklemi"), <b>histerik</b> daha çok <i>fallik-ödipal</i> evrede saplanır <span class="cite">Gab s.554-555</span>.</p>
+
+      <h4 class="sub">Kendilik</h4>
+      <p>Temel kendilik duygusu: güçlü ve yabancı ötekilerin dünyasında <b>küçük, korkmuş, eksik bir çocuk</b> <span class="cite">McW s.375</span>. Dışarıdan manipülatif görünse de öznel amaç güvenlik ve kabuldür — psikopatik manevradan farkı budur <span class="cite">McW s.375</span>. Güç "erkeksi" sayıldığından, güçlü hissetmek kadın hastada çoğu kez "erkek gibi hissetmek"le eşleşir; kadınlık kimliğinde güç hissedememe sürekli bir çıkmaz yaratır <span class="cite">McW s.377</span>. Özsaygı idealize/güçlü bir nesneye bağlanmayla "türetilir"; yüzeysel duygulanım aslında güçlü birinin önünde kendini ifade etme cesaretine dair kaygıdan doğar — duygu oradadır ama çatışma içinde sıkışmıştır <span class="cite">McW s.378-379</span>.</p>
+
+      <h4 class="sub">Aktarım & karşı-aktarım</h4>
+      <p>Aktarım kavramı ilk kez histerik hastalarda keşfedildi — rastlantı değil <span class="cite">McW s.379</span>. Aktarımın doğası hasta–terapist cinsiyetine göre değişir: kadın hasta–erkek terapistte heyecan + korku + savunmacı baştan çıkarıcılık; kadın terapistte ince rekabet/düşmanlık <span class="cite">McW s.379-380</span>. Karşı-aktarımda iki tuzak: <b>savunmacı mesafe/küçümseme</b> ve <b>bebeksileştirme</b> ("çaresiz küçük kız + Her Şeyi Bilen Baba") <span class="cite">McW s.381-382</span>. <span class="au">Gabbard</span> erotik vs <span class="term">erotize aktarımı</span> ayırır: histerikte yavaş gelişen, ego-distonik erotik aktarım; daha ilkelde hızlı, ego-sintonik, "gerçekçi" sayılan erotize aktarım — ve cinsel sınır ihlalinin yıkıcılığı <span class="cite">Gab s.560-562</span>.</p>
+
+      <h4 class="sub">Terapi açısından anlamları</h4>
+      <p>Standart analitik/dışavurumcu terapi bu hastalar için "icat edildi" ve tercih edilen yöntem olmayı sürdürür <span class="cite">McW s.383</span>. İlke (<span class="au">Allen</span>, <span class="au">Gabbard</span>): <b>içerikten önce direnç/bilişsel tarz ele alınır</b> — hastaya "ne hissettiğini" ayrıntılandırması ve duygu ile düşünceyi bağlaması öğretilir; aşırı erken yorum "seni senden iyi tanıyorum" tonuyla iğdiş edici/işgalci gelir <span class="cite">McW s.384</span> <span class="cite">Gab s.558-559</span>. Dönüm noktası aktarımın doğru yönetimidir; sıcak-empatik tutum + sınırların titiz korunması esastır <span class="cite">McW s.383-384</span>.</p>
+
+      <div class="tw">
+        <table>
+          <caption>Histerik (nevrotik) ↔ Histriyonik (ilkel) — <span class="au">Gabbard</span> Tablo 18-1</caption>
+          <thead><tr><th>Eksen</th><th>Histerik (nevrotik)</th><th>Histriyonik (ilkel)</th></tr></thead>
+          <tbody>
+            <tr><th>Duygulanım</th><td>Sınırlı, çerçeveli</td><td>Taşkın, yaygın</td></tr>
+            <tr><th>Dürtü kontrolü</th><td>İyi</td><td>Genel dürtüsellik</td></tr>
+            <tr><th>Baştan çıkarıcılık</th><td>İnce, çekici</td><td>Kaba, uzaklaştırıcı</td></tr>
+            <tr><th>Nesne ilişkisi</th><td>Olgun, üçlü (ödipal)</td><td>İlkel, ikili; yapışma/mazoşizm/paranoya</td></tr>
+            <tr><th>Ayrılık</th><td>Tolere edilir</td><td>Bunaltıcı ayrılık kaygısı</td></tr>
+            <tr><th>Süperego/savunma</th><td>Katı süperego, obsesif savunmalar</td><td>Gevşek süperego, bölme/idealizasyon</td></tr>
+            <tr><th>Erotik aktarım</th><td>Yavaş, gerçekçi-değil görülür</td><td>Hızlı, "gerçekçi" sayılır</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.86rem;color:var(--ink-soft)"><span class="cite">Gab s.550</span> · Erkek histerik iki alt tip: <b>hipermaskülen</b> ("Don Juan") ve <b>pasif/efemine</b> <span class="cite">Gab s.551-552</span>. <span class="au">McWilliams</span> kadınlarda histerinin sık görülmesini güç eşitsizliği + babanın "öteki/idealize" konumuyla açıklar <span class="cite">McW s.374-375</span>.</p>
+
+      <div class="exam">
+        <div class="exam__h">🎯 Sınav köşesi · histerik</div>
+        <div class="exam__b">
+          <p class="keyline"><strong>En çok karışan üçlü:</strong> histerik ↔ <b>psikopatik</b> (korkuyu zayıflık sayar, teatrallik savunmacı değil; güç gösterisi psikopatı <i>çeker</i>, histeriği <i>korkutur</i>) <span class="cite">McW s.385-387</span>; histerik ↔ <b>narsisistik</b> (histerikte değersizleştirme cinsiyete bağlı/karşı-fobik ve tepkiseldir; narsisistikte alışkanlık halinde sıralayıcıdır) <span class="cite">McW s.387</span>; histerik ↔ <b>dissosiyatif</b> (dissosiyatifte mekanizmalar <i>birincil</i>, histerikte <i>ikincildir</i>) <span class="cite">McW s.372, 388</span>.</p>
+          <p class="keyline"><strong>Tuzak:</strong> "Davranışça en çarpıcı histerik görünen, dinamik olarak <i>en az</i> histeriktir" (Wallerstein) — yani florid tablo çoğu kez histriyoniği/borderline'ı işaret eder <span class="cite">Gab s.548</span>.</p>
+          <p class="keyline"><strong>Tuzak:</strong> Konversiyon/Briquet ≠ histerik kişilik; modern psikiyatride klinik ve dinamik olarak ilişkisiz kabul edilir <span class="cite">Gab s.546</span>.</p>
+          <p class="keyline"><strong>Akılda tut:</strong> Histeriğin özünde kaygı vardır; baştan çıkarıcılık çoğu kez korkulan şeye karşı <i>karşı-fobik</i> bir harekettir, hakiki cinsel doyum değil <span class="cite">McW s.371</span>.</p>
+          <p class="keyline"><strong>Dışla:</strong> "Gizemli bedensel semptom"u histeriye yormadan önce organik nedeni dışla (McWilliams'ın "bahçıvan histerisi" ve Gershwin örnekleri) <span class="cite">McW s.388</span>.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- ---- diğer tipler (in-flow, pending read) ---- -->
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Aynı akışta sıradaki tipler (<span class="cite">McW Böl. 7–15</span> + <span class="cite">Gab Böl. 14–19</span>)</h4>
+      <ul>
+        <li>Psikopatik / antisosyal — <span class="cite">McW Böl. 7</span> · <span class="cite">Gab Böl. 17</span></li>
+        <li>Narsisistik — <span class="cite">McW Böl. 8</span> · <span class="cite">Gab Böl. 16</span></li>
+        <li>Şizoid — <span class="cite">McW Böl. 9</span> · <span class="cite">Gab Böl. 14</span></li>
+        <li>Paranoid — <span class="cite">McW Böl. 10</span> · <span class="cite">Gab Böl. 14</span></li>
+        <li>Depresif & manik — <span class="cite">McW Böl. 11</span> · <span class="cite">Gab Böl. 8</span></li>
+        <li>Mazoşistik (kendi aleyhine işleyen) — <span class="cite">McW Böl. 12</span></li>
+        <li>Obsesif & kompülsif — <span class="cite">McW Böl. 13</span> · <span class="cite">Gab Böl. 19</span></li>
+        <li>Dissosiyatif — <span class="cite">McW Böl. 15</span> · <span class="cite">Gab Böl. 10</span></li>
+        <li>Borderline (örgütlenme & DSM) — <span class="cite">Gab Böl. 15</span></li>
+      </ul>
+      <div class="srcline">Her biri yukarıdaki histerik kartının iç şablonuyla, aynı atıf sistemiyle yazılacak.</div>
+    </div>
+  </section>
+
+  <!-- ============ 04 BOZUKLUKLAR ============ -->
+  <section class="part" id="bozukluklar">
+    <div class="part__head">
+      <div class="part__num">04</div>
+      <h2 class="part__title">Bozuklukların psikodinamik okunuşu<small>Gabbard omurga · PDM-2 S-ekseni karşılığı</small></h2>
+    </div>
+    <p><span class="au">Gabbard</span> bu bölümde bozuklukları DSM-5 başlıklarıyla ama dinamik anlamlarıyla ele alır; atlasta her başlık "klinik tablo → dinamik anlayış → tedavi/farmakoterapi yeri" sırasıyla işlenecek.</p>
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler</h4>
+      <ul>
+        <li>Şizofreni — <span class="cite">Gab Böl. 7</span></li>
+        <li>Duygudurum bozuklukları — <span class="cite">Gab Böl. 8</span></li>
+        <li>Anksiyete bozuklukları — <span class="cite">Gab Böl. 9</span></li>
+        <li>Travma/stresör & dissosiyatif — <span class="cite">Gab Böl. 10</span></li>
+        <li>Parafili & cinsel işlev — <span class="cite">Gab Böl. 11</span></li>
+        <li>Madde & yeme bozuklukları — <span class="cite">Gab Böl. 12</span></li>
+        <li>Nörogelişimsel & nörobilişsel — <span class="cite">Gab Böl. 13</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 05 FORMÜLASYON ============ -->
+  <section class="part" id="formulasyon">
+    <div class="part__head">
+      <div class="part__num">05</div>
+      <h2 class="part__title">Değerlendirme & formülasyon<small>Cabaniss yöntemi + biyopsikososyal şablon</small></h2>
+    </div>
+
+    <h3 class="topic">Formülasyon yöntemi: DESCRIBE → REVIEW → LINK</h3>
+    <div class="nutshell"><b>Tek cümlede</b><span><span class="au">Cabaniss</span> (Psychodynamic Formulation): önce <i>betimle</i>, sonra <i>gelişimi gözden geçir</i>, sonra <i>bağla</i>.</span></div>
+    <ul class="body">
+      <li><b>DESCRIBE</b> — Kendilik, ilişkiler, uyum/baş etme, biliş, değerler, iş ve oyun <span class="cite">Cab Böl. 6–11</span></li>
+      <li><b>REVIEW</b> — Yaşam öyküsü: doğuştan getirilenler → erken yıllar → orta/geç çocukluk → ergenlik → yetişkinlik <span class="cite">Cab Böl. 12–17</span></li>
+      <li><b>LINK</b> — Örgütleyici fikirlerle bağla: travma; erken bilişsel-duygusal güçlükler; kültür/toplum; <i>çatışma & savunma</i>; ilişkiler; kendiliğin gelişimi; bağlanma <span class="cite">Cab Böl. 18–24</span></li>
+    </ul>
+    <p style="font-size:.86rem;color:var(--ink-soft)">Dikkat: LINK başlıkları doğrudan 01'deki okullara karşılık gelir (çatışma/savunma = dürtü/ego psikolojisi; kendiliğin gelişimi = Kohut; bağlanma = Bowlby).</p>
+
+    <h3 class="topic">Biyopsikososyal formülasyon şablonu</h3>
+    <p>Atlasın pratik iskeleti <span class="au">Eskişehir Osmangazi · Kültür-Psikanaliz ve Psikoterapiler Birimi</span> kılavuzudur (Campbell & Rohrbaugh temelli): biyolojik (belirtiler, yatkınlıklar, epidemiyoloji uyumu) → psikolojik (genel + <b>psikodinamik</b>: çatışma/kişi üçgenleri, çekirdek çatışma teması, savunmalar, reflektif işlev/mentalizasyon, örgütlenme düzeyi; ayrıca bilişsel ve davranışçı) → sosyal → risk değerlendirmesi → tedavi planı → prognoz <span class="cite">BPS Kılavuz</span>.</p>
+
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler</h4>
+      <ul>
+        <li>DESCRIBE/REVIEW/LINK alt başlıklarının dolu içerikleri — <span class="cite">Cab</span></li>
+        <li>Akut bakım / aile / çift / çocuk ortamlarında formülasyon — <span class="cite">Cab Part 5</span></li>
+        <li>Olgu örnekleri & PDM-2 profilleri — <span class="cite">PDM Böl. 16</span> (tam metin gelince)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 06 TEDAVİ ============ -->
+  <section class="part" id="tedavi">
+    <div class="part__head">
+      <div class="part__num">06</div>
+      <h2 class="part__title">Tedavi<small>Bireysel · grup/aile · farmakoterapi</small></h2>
+    </div>
+    <div class="pending">
+      <span class="status wip">okunuyor</span>
+      <h4>Bu bölgeye eklenecekler</h4>
+      <ul>
+        <li>Dinamik psikiyatride bireysel psikoterapi — <span class="cite">Gab Böl. 4</span></li>
+        <li>Grup, aile/çift terapisi ve farmakoterapi — <span class="cite">Gab Böl. 5</span></li>
+        <li>Dinamik yönelimli psikiyatrik pratik (hastane/toplum) — <span class="cite">Gab Böl. 6</span></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p><b>Kaynak hiyerarşisi.</b> Omurga: McWilliams, <i>Psikanalitik Tanı</i> (Çev. E. Kalem, Bilgi Üniv.). İkincil: Gabbard, <i>Psychodynamic Psychiatry in Clinical Practice</i> (5. bs.). Yöntem: <i>Psychodynamic Formulation: An Expanded Approach</i> (2022). Çerçeve: PDM-2 (yüklenen dosya kısmî). Tamamlayıcı: Kaptanoğlu · Destekleyici Psikoterapi slaytları; Eskişehir Osmangazi Biyopsikososyal Formülasyon Kılavuzu.</p>
+  <p style="margin-top:.6rem">Atıflar Ezgi'nin kaynak-bütünlüğü standardına göre verilir: her cümle bir kaynağa bağlıdır, sayfa belirtilir, eksik kaynak <span class="status wip">okunuyor</span> olarak işaretlenir, uydurma yapılmaz. Sürüm 0.1 · sürekli akış.</p>
+  <a class="backtop" href="#top">↑ Başa dön</a>
+</footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('tocBtn'),
+      toc=document.getElementById('toc'),
+      scrim=document.getElementById('scrim'),
+      close=document.getElementById('tocClose');
+  function open(){toc.classList.add('open');scrim.classList.add('open');btn.setAttribute('aria-expanded','true');}
+  function shut(){toc.classList.remove('open');scrim.classList.remove('open');btn.setAttribute('aria-expanded','false');}
+  btn.addEventListener('click',open);
+  close.addEventListener('click',shut);
+  scrim.addEventListener('click',shut);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')shut();});
+  Array.prototype.forEach.call(toc.querySelectorAll('a'),function(a){a.addEventListener('click',shut);});
+
+  // active section highlight
+  if('IntersectionObserver' in window){
+    var links={};
+    Array.prototype.forEach.call(toc.querySelectorAll('a[href^="#"]'),function(a){
+      links[a.getAttribute('href').slice(1)]=a;
+    });
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        var a=links[en.target.id];
+        if(a&&en.isIntersecting){
+          Array.prototype.forEach.call(toc.querySelectorAll('a'),function(x){x.classList.remove('active');});
+          a.classList.add('active');
+        }
+      });
+    },{rootMargin:'-30% 0px -60% 0px'});
+    Array.prototype.forEach.call(document.querySelectorAll('section.part, #histerik'),function(s){io.observe(s);});
+  }
+})();
+</script>
+<script>
+(function(){
+  var KEY='dpatlas:stars';
+  var stars=new Set();
+  try{var raw=localStorage.getItem(KEY); if(raw){JSON.parse(raw).forEach(function(x){stars.add(x);});}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(Array.prototype.slice.call(stars)));}catch(e){}}
+  function slug(s){return s.toLowerCase()
+    .replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+
+  var items=[];
+  var heads=document.querySelectorAll('h3.topic');
+  Array.prototype.forEach.call(heads,function(h){
+    var label=Array.prototype.filter.call(h.childNodes,function(n){return n.nodeType===3;})
+                .map(function(n){return n.textContent;}).join('').replace(/\s+/g,' ').trim();
+    if(!label){label=h.textContent.replace(/\s+/g,' ').trim();}
+    var sec=h.closest('[id]'); var base=(sec?sec.id:'x')+'-'+slug(label);
+    var id='t-'+slug(base);
+    if(!h.id){h.id=id;}
+    var btn=document.createElement('button');
+    btn.className='star'; btn.type='button';
+    btn.setAttribute('aria-label','Yıldızla: '+label);
+    h.insertBefore(btn,h.firstChild);
+    var it={id:id,label:label,anchor:h.id,btn:btn};
+    items.push(it);
+    btn.addEventListener('click',function(){
+      if(stars.has(id)){stars.delete(id);}else{stars.add(id);}
+      save(); paint();
+    });
+  });
+
+  var listEl=document.getElementById('starredList');
+  var emptyEl=document.getElementById('starredEmpty');
+  var countEl=document.getElementById('starsCount');
+  var toc=document.getElementById('toc'); var scrim=document.getElementById('scrim');
+  function paint(){
+    items.forEach(function(it){
+      var on=stars.has(it.id);
+      it.btn.textContent=on?'★':'☆';
+      it.btn.setAttribute('aria-pressed',on?'true':'false');
+    });
+    listEl.innerHTML='';
+    var on=items.filter(function(it){return stars.has(it.id);});
+    on.forEach(function(it){
+      var a=document.createElement('a');
+      a.href='#'+it.anchor; a.textContent=it.label;
+      a.addEventListener('click',function(){if(toc)toc.classList.remove('open');if(scrim)scrim.classList.remove('open');});
+      listEl.appendChild(a);
+    });
+    emptyEl.style.display=on.length?'none':'block';
+    if(countEl)countEl.textContent=on.length;
+  }
+  paint();
+
+  var sb=document.getElementById('starsBtn'), tb=document.getElementById('tocBtn');
+  if(sb&&tb)sb.addEventListener('click',function(){tb.click();});
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+  }
+})();
+</script>
+</body>
+</html>

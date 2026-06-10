@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DP Atlas">
+  <rect width="512" height="512" rx="112" fill="#10363f"/>
+  <!-- layered 'levels of organization' arcs: nevrotik / sınır / psikotik -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M120 196 q136 -84 272 0" stroke="#cfe0e3" stroke-width="22" opacity="0.95"/>
+    <path d="M120 286 q136 -64 272 0" stroke="#5fa6b8" stroke-width="22" opacity="0.9"/>
+    <path d="M120 376 q136 -44 272 0" stroke="#d49a57" stroke-width="22" opacity="0.95"/>
+  </g>
+  <circle cx="256" cy="256" r="13" fill="#f5f7f8"/>
+</svg>
